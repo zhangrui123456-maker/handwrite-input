@@ -1,72 +1,126 @@
-# 数位板手写输入
+<div align="center">
+  <h1 align="center">
+    <a href="https://github.com/zhangrui123456-maker/handwrite-input"><img src="assets/app.png" width="96"></a>
+    <br/>
+    数位板手写输入
+  </h1>
+</div>
 
-Windows WPF 桌面应用：用数位板（或鼠标）在屏幕任意位置书写，松手后本地离线识别成文字，自动粘贴到当前光标处。
+<br/>
 
-## 特性
+<div align="center">
+  <a href="https://github.com/zhangrui123456-maker/handwrite-input/releases"><img alt="Windows" src="https://img.shields.io/badge/platform-Windows-blue?logo=windowsxp&style=flat-square&color=1E9BFA" /></a>
+  <a href="https://github.com/zhangrui123456-maker/handwrite-input/releases"><img alt="下载数" src="https://img.shields.io/github/downloads/zhangrui123456-maker/handwrite-input/total?logo=github&style=flat-square&color=1E9BFA"></a>
+  <a href="https://github.com/zhangrui123456-maker/handwrite-input/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zhangrui123456-maker/handwrite-input?logo=visualstudio&style=flat-square&color=1E9BFA"></a>
+</div>
 
-- **离线识别**：内置 PaddleOCR PP-OCRv6 medium（det + rec ONNX），纯 C#，无 Python，不联网。
-- **GPU 加速**：DirectML 推理，适配任意显卡（含 RTX 50 系）；也可回退 CPU。
-- **全屏书写**：按住切换键（默认 `Ctrl+D`）在屏幕任意位置书写，松手识别。
-- **自动粘贴**：识别后写入剪贴板并可自动 `Ctrl+V` 到光标处。
-- **字体适配**：校准阶段收集「错字 → 正确字」纠正对，识别后处理逐步适配个人笔迹（不改模型）。
-- **极简 UI**：暖白画布 + 炭灰文字，设置页可调切换键、墨迹颜色/粗细、提示配色、执行器等。
+<br/>
 
-## 环境要求
+<div align="center">
+🌟 点一下右上角的 Star，主页就能收到软件更新通知了哦~
+</div>
 
-- Windows 10/11（x64）
-- 若使用 GPU：显卡支持 DirectX 12（DirectML），无则自动回退 CPU
+<br/>
 
-## 构建
+[English](./Docs/i18n/README.en-US.md) | [中文](./README.md)
 
-```bash
-# 拉取 OCR 模型权重（首次构建前需要）
-bash download-models.sh
+数位板手写输入 —— 一个基于本地 OCR 的 Windows 手写输入工具，让数位板（或鼠标）在屏幕任意位置书写，识别成文字并自动粘贴到光标处。
 
-# 构建 Debug
-"$LOCALAPPDATA/Microsoft/dotnet/dotnet.exe" build src/HandwriteInput.PoC/HandwriteInput.PoC.csproj -c Debug
-```
+## 功能
 
-模型约 134MB，未提交进仓库（见 `.gitignore`），构建/发布前用 `download-models.sh` 从 ModelScope 拉取。
+* 书写识别
+  * [全屏书写](https://github.com/zhangrui123456-maker/handwrite-input)：按住切换键（默认 `Ctrl+D`）在屏幕任意位置书写，松手自动识别
+  * [离线识别](https://github.com/zhangrui123456-maker/handwrite-input)：内置 PaddleOCR PP-OCRv6，纯本地推理，无需联网
+  * [GPU 加速](https://github.com/zhangrui123456-maker/handwrite-input)：DirectML 推理，适配任意显卡（含 RTX 50 系），可回退 CPU
+* 输出方式
+  * [自动粘贴](https://github.com/zhangrui123456-maker/handwrite-input)：识别后自动 `Ctrl+V` 到当前光标处，也可仅复制手动粘贴
+  * [顶部提示](https://github.com/zhangrui123456-maker/handwrite-input)：识别文字显示在屏幕顶部状态栏
+* 个人适配
+  * [字体适配](https://github.com/zhangrui123456-maker/handwrite-input)：校准阶段收集「错字 → 正确字」纠正对，逐步适配你的笔迹（不改模型）
+* 外观定制
+  * [墨迹颜色](https://github.com/zhangrui123456-maker/handwrite-input)：5 种预设 + 自定义取色，粗细 2–10px
+  * [提示配色](https://github.com/zhangrui123456-maker/handwrite-input)：浅色白底 / 半透明黑底
 
-## 打包安装程序
+## 截图
 
-```bash
-# 一键：自包含发布 → 清理 → 生成组件清单 → 构建 MSI → 校验
-bash build-installer.sh 1.0.0
-```
+**书写与识别**
 
-产出 `installer/HandwriteInput.msi`（约 194MB，含 .NET 运行时 + DirectML + 模型，目标机器无需预装 .NET）。
+![书写中](Docs/screenshots/01-writing.png)
 
-依赖：WiX 7 及 UI 扩展（首次使用需安装）：
+![识别结果](Docs/screenshots/04-recognized.png)
 
-```bash
-dotnet tool install --global wix
-wix extension add WixToolset.UI.wixext
-```
+**设置与适配**
 
-## 发行（Release）
+![设置](Docs/screenshots/02-settings-1.png)
 
-模型和安装包体积超 GitHub 仓库 100MB 限制，发行时：
+![设置（更多选项）](Docs/screenshots/02-settings-2.png)
 
-1. `bash build-installer.sh <版本号>` 生成 MSI。
-2. 在 GitHub 仓库 **Releases** 页新建发行版，把 `installer/HandwriteInput.msi` 作为附件上传（网页上传单文件上限 2GB）。
-3. 仓库本身只含源码与文档，用户 `git clone` 得到源码，模型用 `download-models.sh` 拉取。
+![字体适配](Docs/screenshots/03-calibration.png)
 
-## 目录结构
+![托盘菜单](Docs/screenshots/05-tray.png)
 
-```
-├── src/HandwriteInput.PoC/     # WPF 应用源码
-│   ├── Ink/                    # 墨迹栅格化 + PaddleOCR 识别引擎
-│   ├── Interop/                # 键盘钩子、剪贴板、托盘图标、Win32 互操作
-│   ├── Profile/                # 字体适配（后处理纠正 + 个人档案）
-│   └── models/                 # OCR 模型（需 download-models.sh 拉取，未入仓库）
-├── assets/                     # 应用图标（.ico/.png）与生成脚本
-├── installer/                  # WiX 安装源（.wxs/.wxi），MSI 由构建脚本生成
-├── build-installer.sh          # 一键打包脚本
-└── download-models.sh          # 模型下载脚本
-```
+## 下载
 
-## 文档
+> [!NOTE]
+> 下载地址：[⚡Github 下载](https://github.com/zhangrui123456-maker/handwrite-input/releases)
+>
+> 在 Releases 页下载 `HandwriteInput.msi`，双击安装即可。安装包已内置 .NET 运行时、DirectML 与 OCR 模型，目标机器无需预装任何环境。
 
-- [技术方案](技术方案.md)
-- [M0 验证报告](M0验证报告.md)
+## 使用方法
+
+由于 OCR 识别需要一定算力，低配置电脑首次识别可能稍慢（后续会缓存并热机）。
+
+你的系统需要满足以下条件：
+  * Windows 10 或更高版本的 64 位系统
+  * 安装包已内置 .NET 8 运行时与 OCR 模型，无需额外安装
+  * 使用 GPU 加速需要显卡支持 DirectX 12（DirectML），否则自动回退 CPU
+
+**⚠️ 注意：**
+1. 切换键默认是 `Ctrl+D`（按住书写、松开识别）。若与输入法或其他软件冲突，可在设置里改。
+2. 识别时请保持笔画完整、字迹清楚，单行书写识别效果最佳。
+3. 自动粘贴会向当前焦点窗口发送 `Ctrl+V`，个别安全软件可能拦截模拟按键，请加入白名单。
+
+**安装后，从桌面或开始菜单启动软件，按住切换键开始书写即可。** 详细步骤：
+
+1. 双击桌面「数位板手写输入」快捷方式启动（图标在系统托盘）。
+2. 把光标定位到要输入文字的地方。
+3. 按住切换键 `Ctrl+D`，在屏幕任意位置用鼠标/数位板书写。
+4. 松开切换键，文字自动识别并粘贴到光标处。
+5. 右键托盘图标可打开「设置」或「字体适配」。
+
+## FAQ
+
+* 为什么识别结果不对？
+  * 请尝试把字写大一点、笔画清楚一点，单行书写。也可以在「字体适配」里写一段文字并校对，让软件逐步适配你的笔迹。
+* 识别很慢怎么办？
+  * 确认设置里「识别执行器」是「自动」或「GPU（DirectML）」。没有独显时可选「CPU」。
+* 需要联网吗？
+  * 不需要。识别全程本地离线完成，模型已内置在安装包中。
+* 怎么改切换键？
+  * 右键托盘图标 →「设置」，点击切换键区域后按下新组合键，保存即可。
+
+## 致谢
+
+本项目的完成离不开以下项目：
+
+* [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
+* [RapidOCR](https://github.com/RapidAI/RapidOCR)
+* [OpenCvSharp](https://github.com/shimat/opencvsharp)
+* [ONNX Runtime](https://github.com/microsoft/onnxruntime)
+* [WiX Toolset](https://github.com/wixtoolset/wix)
+
+## 开发者
+
+[如何编译项目？](./Docs/build.md)
+
+* 构建需要 .NET 8 SDK（x64）
+* 模型权重体积较大未入仓库，首次构建前运行 `bash download-models.sh` 从 ModelScope 拉取
+* 打包安装程序运行 `bash build-installer.sh <版本号>`
+
+## 许可证
+
+本项目采用 [GNU General Public License v3.0](LICENSE) 许可证。
+
+## 问题反馈
+
+提 [Issue](https://github.com/zhangrui123456-maker/handwrite-input/issues)

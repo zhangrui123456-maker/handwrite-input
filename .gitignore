@@ -17,3 +17,6 @@ installer/*.wixpdb
 .vs/
 *.user
 *.suo
+
+# ---- 工具本地状态 ----
+.serena/
