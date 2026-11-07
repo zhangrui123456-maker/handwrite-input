@@ -1,0 +1,73 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="数位板手写输入"
+           Manufacturer="HandwriteInput"
+           Version="$(var.AppVersion)"
+           UpgradeCode="{B4D331C5-D8C6-409E-BA6D-1A99307FA1C2}"
+           Scope="perMachine"
+           Language="2052"
+           Compressed="yes">
+
+    <SummaryInformation Codepage="936" Description="数位板手写输入安装程序" Manufacturer="HandwriteInput" />
+
+    <MajorUpgrade DowngradeErrorMessage="已安装的版本更新，无法降级安装。请先卸载现有版本。" />
+
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AppIcon" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="HandwriteInput">
+        <Directory Id="d_models" Name="models">
+          <Directory Id="d_models_det" Name="det" />
+          <Directory Id="d_models_rec" Name="rec" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppStartMenuDir" Name="数位板手写输入">
+        <Component Id="StartMenuShortcutComponent" Guid="*">
+          <RegistryValue Root="HKCU" Key="Software\HandwriteInput" Name="installed"
+                         Type="integer" Value="1" KeyPath="yes" />
+          <Shortcut Id="StartMenuShortcut" Name="数位板手写输入"
+                    Target="[#AppExe]" WorkingDirectory="INSTALLFOLDER"
+                    Advertise="no" Icon="AppIcon" />
+          <RemoveFolder Id="RemoveAppStartMenuDir" On="uninstall" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcutComponent" Guid="*">
+        <RegistryValue Root="HKCU" Key="Software\HandwriteInput" Name="desktopInstalled"
+                       Type="integer" Value="1" KeyPath="yes" />
+        <Shortcut Id="DesktopShortcut" Name="数位板手写输入"
+                  Target="[#AppExe]" WorkingDirectory="INSTALLFOLDER"
+                  Advertise="no" Icon="AppIcon" />
+        <RemoveFolder Id="RemoveDesktopFolder" On="uninstall" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="数位板手写输入" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="AppExeComponent" />
+      <ComponentRef Id="StartMenuShortcutComponent" />
+      <ComponentRef Id="DesktopShortcutComponent" />
+    </Feature>
+
+  </Package>
+
+  <?include files.wxi ?>
+
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="AppExeComponent" Guid="*">
+        <File Id="AppExe" Source="HandwriteInput.PoC.exe" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+</Wix>

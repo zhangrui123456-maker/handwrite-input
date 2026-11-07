@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设备输入码查看器</title>
+<style>
+  :root {
+    --bg: #0e1014;
+    --panel: #161a22;
+    --panel-2: #1c212b;
+    --border: #262c39;
+    --text: #e6e9ef;
+    --muted: #8a93a6;
+    --accent: #4c8dff;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", Menlo, monospace;
+    --key: #2a9d8f;
+    --mouse: #e9a33b;
+    --pointer: #58c15b;
+    --touch: #d4749e;
+    --gamepad: #b07ce8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", Roboto, sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 20px; margin: 0; font-weight: 650; letter-spacing: .5px; }
+  header p { color: var(--muted); margin: 0; font-size: 13px; }
+  .spacer { flex: 1; }
+  button {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: #fff; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    min-height: 140px;
+  }
+  .card h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dot.key { background: var(--key); }
+  .dot.mouse { background: var(--mouse); }
+  .dot.pointer { background: var(--pointer); }
+  .dot.touch { background: var(--touch); }
+  .dot.gamepad { background: var(--gamepad); }
+
+  .key-big {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .key-big .glyph {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 700;
+    min-width: 64px;
+    text-align: center;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: #fff;
+  }
+  .key-big .code {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--accent);
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    padding: 3px 0;
+    border-bottom: 1px dashed rgba(255,255,255,.05);
+  }
+  .row .label { color: var(--muted); white-space: nowrap; }
+  .row .val { font-family: var(--mono); text-align: right; word-break: break-all; }
+  .mods { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .mod {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .mod.on { color: #0b0d10; border-color: transparent; background: var(--accent); font-weight: 700; }
+
+  .axis { margin: 6px 0; }
+  .axis .axis-label { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  .axis .bar {
+    height: 6px; background: var(--panel-2);
+    border-radius: 3px; margin-top: 3px; position: relative; overflow: hidden;
+  }
+  .axis .bar i {
+    position: absolute; top: 0; bottom: 0; left: 50%;
+    background: var(--gamepad); border-radius: 3px;
+    transform: translateX(-50%);
+  }
+  .btn-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .btn-cell {
+    font-family: var(--mono); font-size: 11px;
+    padding: 3px 7px; border-radius: 6px;
+    border: 1px solid var(--border); color: var(--muted);
+  }
+  .btn-cell.pressed { background: var(--gamepad); color: #0b0d10; border-color: transparent; font-weight: 700; }
+
+  .log {
+    margin-top: 18px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .log h2 { margin: 0 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  #log {
+    max-height: 260px;
+    overflow-y: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .entry .ts { color: var(--muted); margin-right: 8px; }
+  .entry .tag {
+    display: inline-block; min-width: 52px; text-align: center;
+    border-radius: 5px; padding: 0 6px; margin-right: 8px;
+    font-weight: 700; font-size: 11px;
+  }
+  .entry .tag.key { background: var(--key); color: #0b0d10; }
+  .entry .tag.mouse { background: var(--mouse); color: #0b0d10; }
+  .entry .tag.pointer { background: var(--pointer); color: #0b0d10; }
+  .entry .tag.touch { background: var(--touch); color: #0b0d10; }
+  .entry .tag.gamepad { background: var(--gamepad); color: #0b0d10; }
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>设备输入码查看器</h1>
+    <p>按键盘 / 移动鼠标 / 用数位板书写 / 触碰屏幕 / 连接手柄，实时显示输入码</p>
+    <div class="spacer"></div>
+    <button id="clearBtn">清空日志</button>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2><span class="dot key"></span>键盘 Keyboard</h2>
+      <div class="key-big">
+        <div class="glyph" id="kGlyph">—</div>
+        <div class="code" id="kCode">等待按键…</div>
+      </div>
+      <div class="row"><span class="label">key（字符）</span><span class="val" id="kKey">—</span></div>
+      <div class="row"><span class="label">code（物理键）</span><span class="val" id="kCodeVal">—</span></div>
+      <div class="row"><span class="label">keyCode（旧码）</span><span class="val" id="kKeyCode">—</span></div>
+      <div class="row"><span class="label">which</span><span class="val" id="kWhich">—</span></div>
+      <div class="row"><span class="label">location</span><span class="val" id="kLoc">—</span></div>
+      <div class="row"><span class="label">repeat</span><span class="val" id="kRepeat">—</span></div>
+      <div class="mods" id="kMods"></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="dot mouse"></span>鼠标 Mouse</h2>
+      <div class="row"><span class="label">按键 button</span><span class="val" id="mButton">—</span></div>
+      <div class="row"><span class="label">buttons（位掩码）</span><span class="val" id="mButtons">—</span></div>
+      <div class="row"><span class="label">clientX / clientY</span><span class="val" id="mClient">—</span></div>
+      <div class="row"><span class="label">offsetX / offsetY</span><span class="val" id="mOffset">—</span></div>
+      <div class="row"><span class="label">滚轮 deltaX / deltaY</span><span class="val" id="mWheel">—</span></div>
+      <div class="row"><span class="label">deltaMode</span><span class="val" id="mWheelMode">—</span></div>
+      <div class="row"><span class="label">修饰键</span><span class="val" id="mMods">—</span></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="dot pointer"></span>指针 / 数位板 Pointer</h2>
+      <div class="row"><span class="label">pointerId</span><span class="val" id="pId">—</span></div>
+      <div class="row"><span class="label">pointerType</span><span class="val" id="pType">—</span></div>
+      <div class="row"><span class="label">pressure（压感 0–1）</span><span class="val" id="pPressure">—</span></div>
+      <div class="row"><span class="label">tiltX / tiltY（倾角°）</span><span class="val" id="pTilt">—</span></div>
+      <div class="row"><span class="label">twist（旋转°）</span><span class="val" id="pTwist">—</span></div>
+      <div class="row"><span class="label">buttons（位掩码）</span><span class="val" id="pButtons">—</span></div>
+      <div class="row"><span class="label">clientX / clientY</span><span class="val" id="pPos">—</span></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="dot touch"></span>触摸 Touch</h2>
+      <div class="row"><span class="label">活动触点</span><span class="val" id="tCount">0</span></div>
+      <div id="tList" class="empty">尚未触摸屏幕</div>
+    </section>
+
+    <section class="card">
+      <h2><span class="dot gamepad"></span>手柄 Gamepad</h2>
+      <div class="row"><span class="label">已连接</span><span class="val" id="gCount">0</span></div>
+      <div class="row"><span class="label">名称 / 映射</span><span class="val" id="gInfo">—</span></div>
+      <div id="gButtons" class="btn-grid"></div>
+      <div id="gAxes"></div>
+    </section>
+  </main>
+
+  <section class="log">
+    <h2>事件日志</h2>
+    <div id="log"><div class="empty">等待输入事件…</div></div>
+  </section>
+
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const logEl = $("log");
+
+  const LOCATION_NAMES = { 0: "标准", 1: "左侧", 2: "右侧", 3: "数字键盘" };
+  const BUTTON_NAMES = { 0: "左键", 1: "中键", 2: "右键", 3: "后退", 4: "前进" };
+  const DELTA_MODE = { 0: "像素(0)", 1: "行(1)", 2: "页(2)" };
+  const STD_BUTTONS = ["A","B","X","Y","LB","RB","LT","RT","Back","Start","LS","RS","Dpad↑","Dpad↓","Dpad←","Dpad→","Home"];
+
+  const MODS = [
+    ["ctrl", "Ctrl"], ["shift", "Shift"], ["alt", "Alt"], ["meta", "Meta"],
+    ["altGraph", "AltGr"]
+  ];
+
+  function fmtMods(ev) {
+    return MODS.map(([k, label]) => ev.getModifierState ? (ev.getModifierState(k) ? label : "") : "").filter(Boolean);
+  }
+
+  function renderMods(container, onList) {
+    container.innerHTML = MODS.map(([k, label]) =>
+      `<span class="mod ${onList.includes(label) ? "on" : ""}">${label}</span>`
+    ).join("");
+  }
+
+  function set(id, val) { $(id).textContent = val === undefined || val === null || val === "" ? "—" : val; }
+
+  // ---------- 日志 ----------
+  function log(tag, colorClass, msg) {
+    const t = new Date();
+    const ts = t.toTimeString().slice(0, 8) + "." + String(t.getMilliseconds()).padStart(3, "0");
+    const entry = document.createElement("div");
+    entry.className = "entry";
+    entry.innerHTML = `<span class="ts">${ts}</span><span class="tag ${colorClass}">${tag}</span>${msg}`;
+    logEl.prepend(entry);
+    while (logEl.children.length > 200) logEl.removeChild(logEl.lastChild);
+    // 移除占位提示
+    const empty = logEl.querySelector(".empty");
+    if (empty) empty.remove();
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  const kv = (l, v) => `${l}=${esc(v)}`;
+
+  $("clearBtn").addEventListener("click", () => {
+    logEl.innerHTML = '<div class="empty">等待输入事件…</div>';
+  });
+
+  // ---------- 键盘 ----------
+  window.addEventListener("keydown", (e) => {
+    // 阻止空格/方向键/Tab 滚动页面，方便测试
+    if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)) {
+      e.preventDefault();
+    }
+    showKey(e, "keydown");
+    if (!e.repeat) {
+      log("键盘", "key", `down  ${kv("key", e.key === " " ? "Space" : e.key)} ${kv("code", e.code)} ${kv("keyCode", e.keyCode)}`);
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    log("键盘", "key", `up    ${kv("key", e.key === " " ? "Space" : e.key)} ${kv("code", e.code)} ${kv("keyCode", e.keyCode)}`);
+  });
+
+  function showKey(e, type) {
+    const glyph = e.key === " " ? "Space" : (e.key.length === 1 ? e.key : e.key);
+    $("kGlyph").textContent = glyph;
+    $("kCode").textContent = e.code || "";
+    set("kKey", e.key === " " ? "Space" : e.key);
+    set("kCodeVal", e.code);
+    set("kKeyCode", e.keyCode);
+    set("kWhich", e.which);
+    set("kLoc", `${e.location} (${LOCATION_NAMES[e.location] || "?"})`);
+    set("kRepeat", e.repeat);
+    renderMods($("kMods"), fmtMods(e));
+  }
+
+  // ---------- 鼠标 ----------
+  function showMousePos(e) {
+    set("mClient", `${e.clientX} / ${e.clientY}`);
+    set("mOffset", `${e.offsetX} / ${e.offsetY}`);
+  }
+  document.addEventListener("mousemove", (e) => {
+    showMousePos(e);
+    set("mButtons", e.buttons);
+    set("mMods", fmtMods(e).join("+") || "无");
+  });
+  document.addEventListener("mousedown", (e) => {
+    showMousePos(e);
+    set("mButton", `${e.button} (${BUTTON_NAMES[e.button] || "?"})`);
+    set("mButtons", e.buttons);
+    set("mMods", fmtMods(e).join("+") || "无");
+    log("鼠标", "mouse", `down  ${kv("button", e.button)} ${kv("buttons", e.buttons)} ${kv("x", e.clientX)} ${kv("y", e.clientY)}`);
+  });
+  document.addEventListener("mouseup", (e) => {
+    set("mButton", `${e.button} (${BUTTON_NAMES[e.button] || "?"})`);
+    set("mButtons", e.buttons);
+    log("鼠标", "mouse", `up    ${kv("button", e.button)} ${kv("buttons", e.buttons)}`);
+  });
+  document.addEventListener("wheel", (e) => {
+    set("mWheel", `${e.deltaX} / ${e.deltaY}`);
+    set("mWheelMode", DELTA_MODE[e.deltaMode] || e.deltaMode);
+    log("鼠标", "mouse", `wheel ${kv("deltaX", e.deltaX)} ${kv("deltaY", e.deltaY)} ${kv("mode", e.deltaMode)}`);
+  }, { passive: true });
+
+  // ---------- 指针 / 数位板 ----------
+  function showPointer(e) {
+    set("pId", e.pointerId);
+    set("pType", e.pointerType);
+    set("pPressure", e.pressure !== undefined ? e.pressure.toFixed(3) : "—");
+    set("pTilt", (e.tiltX !== undefined ? `${e.tiltX}° / ${e.tiltY}°` : "—"));
+    set("pTwist", e.twist !== undefined ? e.twist.toFixed(1) + "°" : "—");
+    set("pButtons", e.buttons);
+    set("pPos", `${e.clientX} / ${e.clientY}`);
+  }
+  window.addEventListener("pointerdown", (e) => {
+    showPointer(e);
+    log("指针", "pointer", `down  ${kv("type", e.pointerType)} ${kv("id", e.pointerId)} ${kv("pressure", e.pressure?.toFixed(2))} ${kv("buttons", e.buttons)}`);
+  });
+  window.addEventListener("pointermove", showPointer);
+  window.addEventListener("pointerup", (e) => {
+    showPointer(e);
+    log("指针", "pointer", `up    ${kv("type", e.pointerType)} ${kv("id", e.pointerId)} ${kv("buttons", e.buttons)}`);
+  });
+
+  // ---------- 触摸 ----------
+  function showTouches(list) {
+    $("tCount").textContent = list.length;
+    if (list.length === 0) { $("tList").innerHTML = '<span class="empty">无触点</span>'; return; }
+    $("tList").innerHTML = Array.from(list).map(t =>
+      `<div class="row"><span class="label">#${t.identifier}</span>` +
+      `<span class="val">${t.clientX},${t.clientY} r=${(t.radiusX||0).toFixed(1)}/${(t.radiusY||0).toFixed(1)} f=${(t.force ?? "—")}</span></div>`
+    ).join("");
+  }
+  function onTouch(ev, type) {
+    showTouches(ev.touches);
+    log("触摸", "touch", `${type} 触点=${ev.touches.length}`);
+  }
+  window.addEventListener("touchstart", (e) => onTouch(e, "start"));
+  window.addEventListener("touchmove", (e) => onTouch(e, "move"), { passive: true });
+  window.addEventListener("touchend", (e) => onTouch(e, "end"));
+
+  // ---------- 手柄 ----------
+  const gButtonsEl = $("gButtons"), gAxesEl = $("gAxes");
+  let lastGamepadSignature = "";
+
+  function gamepadLoop() {
+    const pads = (navigator.getGamepads ? navigator.getGamepads() : []).filter(p => p);
+    $("gCount").textContent = pads.length;
+
+    const sig = pads.map(p => p.index + ":" + p.id).join("|");
+    if (sig !== lastGamepadSignature) {
+      lastGamepadSignature = sig;
+      if (pads.length) log("手柄", "gamepad", `连接 ${pads.map(p => `#${p.index} ${p.id}`).join(", ")}`);
+    }
+
+    if (pads.length === 0) {
+      gButtonsEl.innerHTML = '<span class="empty">未检测到手柄（连接后按任意键激活）</span>';
+      gAxesEl.innerHTML = "";
+    } else {
+      const g = pads[0];
+      $("gInfo").textContent = `${g.id} · ${g.mapping || "未知映射"}`;
+      const names = g.mapping === "standard" ? STD_BUTTONS : null;
+      gButtonsEl.innerHTML = g.buttons.map((b, i) => {
+        const name = names ? names[i] : ("B" + i);
+        const pressed = b.pressed;
+        return `<span class="btn-cell ${pressed ? "pressed" : ""}" title="${name} value=${b.value.toFixed(2)}">${name}</span>`;
+      }).join("");
+      gAxesEl.innerHTML = g.axes.map((a, i) => {
+        const pct = Math.round(a * 50);
+        const dir = a > 0.02 || a < -0.02 ? a.toFixed(2) : "0.00";
+        return `<div class="axis">
+          <div class="axis-label"><span>轴 ${i}</span><span>${dir}</span></div>
+          <div class="bar"><i style="width:${Math.abs(pct) * 2}%; left:${50 + pct}%"></i></div>
+        </div>`;
+      }).join("");
+    }
+    requestAnimationFrame(gamepadLoop);
+  }
+  requestAnimationFrame(gamepadLoop);
+})();
+</script>
+</body>
+</html>

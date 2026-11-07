@@ -1,0 +1,19 @@
+# ---- 构建输出 ----
+bin/
+obj/
+publish/
+
+# ---- WiX 本机扩展缓存 ----
+.wix/
+
+# ---- 安装产物（体积大，走 Releases 发行，不进仓库）----
+installer/*.msi
+installer/*.wixpdb
+
+# ---- 模型权重（体积大，开发时用 download-models.sh 从 ModelScope 拉取）----
+*.onnx
+
+# ---- IDE / 系统 ----
+.vs/
+*.user
+*.suo

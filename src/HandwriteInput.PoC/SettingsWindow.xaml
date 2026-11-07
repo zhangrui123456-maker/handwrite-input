@@ -1,0 +1,161 @@
+<Window x:Class="HandwriteInput.PoC.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="设置"
+        Width="500"
+        Height="800"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Topmost="True"
+        WindowStyle="ToolWindow"
+        Background="{StaticResource CanvasBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <StackPanel Grid.Row="0" Margin="26,26,26,0">
+            <TextBlock Text="设置" Style="{StaticResource WindowTitle}" />
+            <TextBlock Text="书写体验与识别偏好" Style="{StaticResource WindowSubtitle}" />
+        </StackPanel>
+
+        <!-- 滚动内容 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="26,16,26,0">
+            <StackPanel>
+
+                <!-- 书写切换 -->
+                <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="书写切换" Style="{StaticResource SectionTitle}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="CaptureKeyButton" Style="{StaticResource GhostButton}"
+                                        Content="点击后按下新快捷键" Click="CaptureKey_Click" />
+                                <TextBlock x:Name="CurrentKeyText" Margin="12,0,0,0" VerticalAlignment="Center"
+                                           FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="支持组合键：先按住 Ctrl / Shift / Alt / Win，再按主键。建议用空格、CapsLock 或 F2-F10；普通字母键会占用正常打字。" />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                <RadioButton x:Name="HoldRadio" Content="按住书写，松开识别" FontSize="13"
+                                             Foreground="{StaticResource TextPrimaryBrush}" />
+                                <RadioButton x:Name="ToggleRadio" Content="按一下切换" FontSize="13"
+                                             Foreground="{StaticResource TextPrimaryBrush}" Margin="20,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 字迹外观 -->
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="字迹外观" Style="{StaticResource SectionTitle}" />
+
+                            <TextBlock Text="颜色" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <RadioButton x:Name="InkDark" Style="{StaticResource ColorSwatch}" Tag="#142E7A"
+                                             Checked="InkColor_Checked" />
+                                <RadioButton x:Name="InkBlack" Style="{StaticResource ColorSwatch}" Tag="#111111"
+                                             Checked="InkColor_Checked" />
+                                <RadioButton x:Name="InkRed" Style="{StaticResource ColorSwatch}" Tag="#9F2F2D"
+                                             Checked="InkColor_Checked" />
+                                <RadioButton x:Name="InkGreen" Style="{StaticResource ColorSwatch}" Tag="#346538"
+                                             Checked="InkColor_Checked" />
+                                <RadioButton x:Name="InkBlue" Style="{StaticResource ColorSwatch}" Tag="#1F6C9F"
+                                             Checked="InkColor_Checked" />
+                                <Button x:Name="CustomColorButton" Style="{StaticResource ColorSwatchButton}"
+                                        Background="{StaticResource AccentBrush}"
+                                        ToolTip="自定义颜色"
+                                        Click="CustomColor_Click">
+                                    <TextBlock Text="+" FontSize="14" Foreground="White" FontWeight="Bold" />
+                                </Button>
+                                <TextBlock x:Name="CustomColorLabel" Text="自定义" FontSize="12"
+                                           Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <TextBlock Text="粗细" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,16,0,0" />
+                            <Grid Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="ThicknessSlider" Minimum="2" Maximum="10" Value="4"
+                                        TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" />
+                                <TextBlock x:Name="ThicknessText" Grid.Column="1" FontSize="13" Margin="14,0,0,0"
+                                           VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Grid.Column="2" Text="px" FontSize="12" Margin="4,0,0,0"
+                                           VerticalAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                            </Grid>
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="字迹颜色与粗细只影响屏幕显示，识别时仍按黑色笔迹处理，不影响准确率。" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 顶部提示 -->
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="顶部提示配色" Style="{StaticResource SectionTitle}" />
+                            <RadioButton x:Name="StatusLightRadio" Content="浅色白底" FontSize="13"
+                                         Foreground="{StaticResource TextPrimaryBrush}" />
+                            <RadioButton x:Name="StatusDarkRadio" Content="半透明黑底" FontSize="13"
+                                         Foreground="{StaticResource TextPrimaryBrush}" Margin="0,6,0,0" />
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="控制屏幕顶部状态提示条的外观，任选其一。" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 识别后处理 -->
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="识别后处理" Style="{StaticResource SectionTitle}" />
+                            <CheckBox x:Name="AutoPasteCheck" Content="识别后自动粘贴到当前光标处"
+                                      FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="勾选：松手识别后自动粘贴；不勾选：文字只复制到剪贴板，可手动 Ctrl+V。" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 字体适配 -->
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="字体适配" Style="{StaticResource SectionTitle}" />
+                            <Button Content="打开字体适配…" Style="{StaticResource GhostButton}"
+                                    Click="Calibrate_Click" HorizontalAlignment="Left" />
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="写一段文字并校对，逐步适配你的笔迹（纠正常写错的字）。" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 识别执行器 -->
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="识别执行器" Style="{StaticResource SectionTitle}" />
+                            <ComboBox x:Name="ProviderBox" Width="280" HorizontalAlignment="Left" FontSize="13"
+                                      Foreground="{StaticResource TextPrimaryBrush}">
+                                <ComboBoxItem Content="自动（优先 GPU，失败回退 CPU）" />
+                                <ComboBoxItem Content="GPU（DirectML）" />
+                                <ComboBoxItem Content="CPU" />
+                            </ComboBox>
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="GPU 走 DirectML，适配任意显卡（含 RTX 50 系）。改后点「保存」生效。" />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 底部操作：固定在窗口底部 -->
+            <Grid Grid.Row="2" Margin="26,16,26,22">
+                <Button Content="退出程序" Style="{StaticResource DangerButton}"
+                        Click="Exit_Click" HorizontalAlignment="Left" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="取消" Style="{StaticResource GhostButton}" Click="Cancel_Click" />
+                    <Button Content="保存" Style="{StaticResource PrimaryButton}" Click="Save_Click"
+                            Margin="10,0,0,0" IsDefault="True" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+</Window>
